@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms:TemplateForm xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:forms="py.com.concepto.components.forms.*" 
+					width="100%" height="100%" 
+					showBtnInsert="false"
+					detailHeight="15"
+					label="{WMResourceManager.getAdvancedResourceString(this, 'title', resourceFileName)}" 
+					xmlns:main="py.com.concepto.sysposto.view.main.*" >
+	
+	<fx:Script>
+		<![CDATA[
+			import py.com.concepto.components.ControllerBase;
+			import py.com.concepto.components.core.resource.WMResourceManager;
+			import py.com.concepto.sysposto.controller.EmpresaController;
+			import py.com.concepto.sysposto.controller.MainController;
+			
+			
+			//*****************************************************************************************************
+			//Variables--------------------------------------------------------------------------------------------
+			/**Controller of the window, it is injected from the swiz*/
+			[Inject (source="mainController")]
+			public var mainController:MainController;
+			
+			/**The resource name for use in internacionalization*/
+			[Bindable]
+			public var resourceFileName:String = "Concepto";
+			//Variables--------------------------------------------------------------------------------------------
+			//*****************************************************************************************************
+
+			/**Adds the controller for this template*/
+			public override function sincController():void{
+				this.controller = mainController;
+			
+			}
+			
+			/**Returns false, because this window is the main, and not can be closed*/
+			public override function get closable():Boolean{
+				return false;
+			}
+			
+			/**Invokes the controller and executes the last search*/
+			public override function refresh():void{
+			//	(controller as MainController).executeLastFind();
+			}
+						
+
+			
+		]]>
+	</fx:Script>
+	
+	<forms:detailForm>
+		<main:MainDetailForm/>
+	</forms:detailForm>
+	<forms:listForm>
+		<main:MainListForm id="formList"/>	
+	</forms:listForm>
+	
+</forms:TemplateForm>

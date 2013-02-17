@@ -1,0 +1,57 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace edit "py.com.concepto.components.controls.edit.*";
+@namespace controls "py.com.concepto.components.controls.*";
+
+
+
+@namespace forms "py.com.concepto.components.forms.*";
+
+s|FormItem
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.SimpleFormItemSkin");
+}
+controls|ConceptoFormItem
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.SimpleFormItemSkin");
+}
+
+s|Button
+{
+	skinClass:ClassReference("py.com.concepto.components.skins.GreenButtonSkin");
+}
+
+s|DropDownList{
+	skinClass:ClassReference("py.com.concepto.components.skins.DropDownListSkinCustom")
+}
+
+
+s|ComboBox{
+	skinClass:ClassReference("py.com.concepto.components.skins.ComboBoxSkin")
+}
+
+
+.simpleGridHeader
+{
+	borderVisible: false;
+	headerColors:#FFFFFF, #E6E6E6;
+	
+}
+
+.headerComponent
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.HeaderSkin");
+}
+.ConceptoDataGrid
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.GridFilterColumnsSkin");
+}
+.DataGrid
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.SimpleDataGridSkin");
+}
+.DataGrid
+{
+	skinClass: ClassReference("py.com.concepto.components.skins.SimpleDataGridHeaderCenterSkin");
+	textAlign: center;
+}

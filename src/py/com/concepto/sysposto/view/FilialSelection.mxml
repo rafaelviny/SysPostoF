@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		 xmlns:components="py.com.concepto.components.*"
+		 xmlns:components1="br.ind.acs.components.*" 
+		 xmlns:components2="py.com.concepto.components.*" 
+		 xmlns:forms="py.com.concepto.components.forms.*"
+		 creationComplete="onCreationComplete(event)"
+         xmlns:controls="py.com.concepto.components.controls.*"
+		 >
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  verticalAlign="middle"/>
+	</s:layout>
+	
+
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import py.com.concepto.components.core.resource.WMResourceManager;
+			import py.com.concepto.sysposto.controller.ApplicationController;
+			import py.com.concepto.sysposto.controller.FilialController;
+			import py.com.concepto.sysposto.model.entity.Filial;
+			import py.com.concepto.sysposto.model.entity.Usuario;
+			
+			
+			[Bindable]
+			[Embed(source="py/com/concepto/sysposto/assets/openfolder16.png")] 
+			public var openFolderIcon:Class;
+			
+			[Bindable]
+			[Embed(source="py/com/concepto/sysposto/assets/closedfolder16.png")] 
+			public var closeFolderIcon:Class;
+			
+			[Bindable]
+			[Embed(source="py/com/concepto/sysposto/assets/simple.png")] 
+			public var defaultIcon:Class;
+			
+			//*****************************************************************************************************
+			//Variables--------------------------------------------------------------------------------------------
+			/**Responsible to navigate on the resources - Internacionalization*/
+			[Bindable]
+			public var wmResourceManager:WMResourceManager=WMResourceManager.getInstance();
+			
+			[Inject(source="filialController")]
+			[Bindable]
+			public var controller:FilialController;
+			
+					
+				
+ 			private function filialLabelFunction (item:Object, column:AdvancedDataGridColumn): String {
+				return item.filial.descricao;
+			}
+			private function groupLabelFunction (item:Object, column:AdvancedDataGridColumn): String {
+				return item.emp.descricao;
+			}
+			
+			 
+
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if(grdGroup.selectedItem == null){
+					errorText.text = WMResourceManager.getAdvancedResourceString(this, 'errorSelectedFilial', 'Concepto');
+					errorText.includeInLayout = true;
+					errorText.visible = true;
+					return;
+				}
+				if(grdGroup.selectedItem.filial as Filial){
+					ApplicationController.getInstance().loggedFilial = grdGroup.selectedItem.filial as Filial;
+					PopUpManager.removePopUp(this);
+					ApplicationController.getInstance().application.applicationLogin();
+				}else{
+					errorText.text = WMResourceManager.getAdvancedResourceString(this, 'errorSelectedFilial', 'Concepto');
+					errorText.includeInLayout = true;
+					errorText.visible = true;
+						
+				}
+				
+			}
+			
+			protected function onCreationComplete(event:FlexEvent):void
+			{
+				controller.pesquisaFiliaisPorUsuario();
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>				
+			
+	</fx:Declarations>
+	
+	<s:BorderContainer dropShadowVisible="false"
+					   cornerRadius="5"
+					   borderWeight="1"
+					   borderColor="0x41917d"
+					   width="470">
+
+		<forms:PanelTitle height="25" 
+						  title="{resourceManager.getString('Concepto','py.com.concepto.view.FilialSelection')}"/>
+		
+		<s:Form top="25" width="100%">
+			<s:layout>
+				<s:VerticalLayout paddingLeft="10"
+								  paddingRight="10"
+								  paddingTop="10"
+								  paddingBottom="10"
+								  gap="15">
+				
+				</s:VerticalLayout>
+								 
+			</s:layout>
+	
+			
+			
+			<mx:AdvancedDataGrid id="grdGroup"
+									 width="430"
+									 height="300"
+									 labelFunction="filialLabelFunction"
+									 groupLabelFunction="groupLabelFunction"
+									 defaultLeafIcon="{defaultIcon}"
+									 folderOpenIcon="{openFolderIcon}"
+									 folderClosedIcon="{closeFolderIcon}"
+									 dataProvider="{controller.dataSource}"
+									 headerColors="[#cccccc, #cccccc]">
+				<mx:columns>
+					<mx:AdvancedDataGridColumn dataField="filiais.descricao"
+											   headerText="{WMResourceManager.getAdvancedResourceString(this, 'grdGroup.strNome', 'Concepto')}"/>
+				</mx:columns>
+			</mx:AdvancedDataGrid>
+				
+				
+			
+			<s:Label id="errorText"
+					 visible="false"
+					 includeInLayout="false"
+					 color="0xFF0000"/>
+				
+				<s:Group width="100%">
+					<s:layout>
+						<s:HorizontalLayout horizontalAlign="right"/>
+					</s:layout>
+					<s:Spacer width="100%"/>				
+					<s:Button label="{WMResourceManager.getAdvancedResourceString(this, 'acessar', 'Concepto')}" click="button1_clickHandler(event)"/>
+				</s:Group>
+				
+			
+		</s:Form>
+		
+	</s:BorderContainer>
+
+</s:Group>

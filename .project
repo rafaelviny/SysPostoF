@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>SysPostoF</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.adobe.flexbuilder.project.flexbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.adobe.flexbuilder.project.flexnature</nature>
+		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>bin-debug</name>
+			<type>2</type>
+			<location>C:/xampp/htdocs/ConceptoSistemas</location>
+		</link>
+		<link>
+			<name>services/LoginService.php</name>
+			<type>1</type>
+			<location>C:/xampp/htdocs/ConceptoSistemas/services/LoginService.php</location>
+		</link>
+	</linkedResources>
+</projectDescription>

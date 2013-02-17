@@ -1,0 +1,75 @@
+
+<model xmlns="http://ns.adobe.com/Fiber/1.0">
+  <annotation name="ActionScriptGeneration">
+    <item name="FullyQualifyReferences">true</item>
+  </annotation>
+  <service name="LoginService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">LoginService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.loginservice</item>
+      <item name="Endpoint">gateway.php</item>
+      <item name="Destination">LoginService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">ConceptoSistemas/services/LoginService.php</item>
+      <item name="PHP_SERVER_ROOT">C:/xampp/htdocs/</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">C:/xampp/htdocs/ConceptoSistemas/services</item>
+      <item name="PHP_LOCATION">C:/xampp/htdocs/ConceptoSistemas/services/LoginService.php</item>
+      <item name="LINKED_FILE">LoginService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/ConceptoSistemas/gateway.php</item>
+      <item name="PHP_CLASS_NAME">LoginService</item>
+    </annotation>
+    <function name="login" return-type="opaque">
+      <annotation name="analyze group">
+        <item name="analyzed">false</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParamNames">nome,password</item>
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="nome" type="opaque"/>
+      <parameter name="password" type="opaque"/>
+    </function>
+    <function name="get_method" return-type="opaque">
+      <annotation name="analyze group">
+        <item name="analyzed">false</item>
+      </annotation>
+      <annotation name="ActionScriptGeneration">
+        <item name="remoteFunction">get</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+  </service>
+  <entity name="Login" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Login</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">LoginService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="user" type="string"/>
+    <property name="password" type="string"/>
+    <property name="language" type="string"/>
+    <property name="confirmPassword" type="string"/>
+    <property name="savePassword" type="integer"/>
+    <property name="newPassword" type="string"/>
+    <property name="boPrimeiroAcesso" type="integer"/>
+    <property name="strNome" type="string"/>
+  </entity>
+</model>

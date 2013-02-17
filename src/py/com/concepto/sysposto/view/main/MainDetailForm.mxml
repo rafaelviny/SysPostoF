@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="100%" 
+		 height="100%" 
+		 xmlns:forms="py.com.concepto.components.forms.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import py.com.concepto.components.core.resource.WMResourceManager;
+			import py.com.concepto.components.events.FindEvent;
+			
+			//*****************************************************************************************************
+			//Variables--------------------------------------------------------------------------------------------
+			
+			
+			/**The resource name for use in internacionalization*/
+			[Bindable]
+			public var resourceFileName:String = "Concepto";
+			//Variables--------------------------------------------------------------------------------------------
+			//*****************************************************************************************************
+			
+			protected function findGroupByCondition(event:FindEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="browse"/>
+		<s:State name="insert"/>
+		<s:State name="edit"/>
+		<s:State name="save"/>
+	</s:states>
+	
+	
+	<s:HGroup width="100%"
+			  verticalAlign="bottom"
+			  horizontalAlign="left">
+		
+		<s:VGroup width="30%">
+			<s:Label text="{WMResourceManager.getAdvancedResourceString(this, 'lblTitle',resourceFileName)}"
+					 fontSize="15"
+					 fontWeight="bold"/>
+		</s:VGroup>
+		
+		<forms:Find includeIn="edit,insert,save" width="100%" find="findGroupByCondition(event)"
+					prompt="{WMResourceManager.getAdvancedResourceString(this, 'Find.prompt', resourceFileName)}"/>
+	</s:HGroup>
+</s:Group>

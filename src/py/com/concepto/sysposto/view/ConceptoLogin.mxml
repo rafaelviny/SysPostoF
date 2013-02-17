@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+		 xmlns:components="py.com.concepto.components.*"
+		 initialize="onInitialize(event)" xmlns:components1="br.ind.acs.components.*" xmlns:components2="py.com.concepto.components.*" xmlns:forms="py.com.concepto.components.forms.*"
+		 creationComplete="preInitializeToLogin(event)">
+	<s:layout>
+		<s:VerticalLayout horizontalAlign="center"
+						  verticalAlign="middle"/>
+	</s:layout>
+	
+	<fx:Metadata>
+		[Event(name="doLogin", type="py.com.concepto.components.events.LoginEvent")]
+		[Event(name="changePassword", type="py.com.concepto.components.events.LoginEvent")]
+		[Event(name="cancel", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	
+	<!--States-->
+	<s:states>
+		<s:State name="sttLogin"/>
+		<s:State name="sttChangePassword"/>
+	</s:states>
+	
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.ValidationResultEvent;
+			import mx.validators.StringValidator;
+			
+			import py.com.concepto.components.core.resource.Cookie;
+			import py.com.concepto.components.core.resource.WMResourceManager;
+			import py.com.concepto.components.crypto.Rijndael;
+			import py.com.concepto.components.dialogs.Alert;
+			import py.com.concepto.components.events.LoginEvent;
+			import py.com.concepto.components.types.LanguageType;
+			import py.com.concepto.components.util.SoundUtils;
+			import py.com.concepto.sysposto.model.entity.Usuario;
+			
+			import spark.events.IndexChangeEvent;
+			
+			//*****************************************************************************************************
+			//Variables--------------------------------------------------------------------------------------------
+			/**Responsible to navigate on the resources - Internacionalization*/
+			[Bindable]
+			public var wmResourceManager:WMResourceManager=WMResourceManager.getInstance();
+			
+			[Bindable]
+			private var _currentLogin:Usuario;
+			private var _cookieNavigatorLocale:String;
+			//Variables--------------------------------------------------------------------------------------------
+			//*****************************************************************************************************
+			
+			
+			/**Calls the preInitializeToLogin*/
+			public function onInitialize(evt:Event):void{
+				preInitializeToLogin(null);
+			}
+			
+			/**Initializes the user preferences, retrieves the password if so configured*/
+			public function initializePrefs():void
+			{
+				this._currentLogin = new Usuario();
+				var navigatorLocale:String = Cookie.getBrowseLocale();
+				var selectedLanguage:LanguageType =  LanguageType.getLanguage(navigatorLocale);
+				wmResourceManager.selectedLanguage = selectedLanguage;
+				 _currentLogin.language = selectedLanguage; 
+			
+				_currentLogin.login = String(Cookie.getCookie(Cookie.COOKIE_USER));
+				if (_currentLogin.login == "null") {
+					_currentLogin.login = "";
+				}
+			
+				_currentLogin.login = _currentLogin.login;
+				_currentLogin.salvarSenha = String(Cookie.getCookie(Cookie.COOKIE_SAVEPWD)) == "true";
+				if (_currentLogin.salvarSenha==true) {
+					_currentLogin.senha = String(Cookie.getCookie(Cookie.COOKIE_PASSWORD));
+					_currentLogin.senha = _currentLogin.senha;
+			
+				} 
+			}
+			
+			/**Saves the user and password on the cookies whether is checked for save the password*/
+			public function savePrefs():void{				
+				var enc:Rijndael = new Rijndael(128,128);
+				Cookie.setCookie(Cookie.COOKIE_USER,_currentLogin.login,30);
+				Cookie.setCookie(Cookie.COOKIE_SAVEPWD,_currentLogin.salvarSenha,30);
+				if (_currentLogin.salvarSenha==true) {
+					Cookie.setCookie(Cookie.COOKIE_PASSWORD, _currentLogin.senha,30);
+				}
+			}
+			
+			/**Triggers the login event*/	
+			protected function doLogin():void{
+				if(validate()){
+					var evt:LoginEvent = new LoginEvent(_currentLogin.login, _currentLogin.senha,_currentLogin.language, LoginEvent.DO_LOGIN);
+					savePrefs();
+					dispatchEvent(evt);
+				}
+			}
+			
+			/**Resets this window for change password action*/
+			public function preInitializeToChangePassword(evt:Event):void{
+				this.currentState = "sttChangePassword";	
+				resetValidations();
+				initializePrefs();
+			
+			}
+			
+			/**Sets the state for login and resets validations and initializes the preferences*/
+			public function preInitializeToLogin(evt:Event):void{
+				this.currentState = "sttLogin";	
+				resetValidations();
+				initializePrefs();
+				
+			}
+			
+			/**Resets the validations*/
+			private function resetValidations():void{
+				if(edtPasswordConfirm)
+				edtPasswordConfirm.errorString = '';
+				
+				if(errorText)
+				errorText.includeInLayout = false;
+				errorText.visible = false;		
+				
+				if(edtPassword)
+				edtPassword.errorString = '';
+				
+				if(edtUser)
+				edtUser.errorString = '';	
+				
+				if(cbbLanguage)
+				cbbLanguage.errorString = '';					
+			}
+			
+			/**Trigger the event change password*/
+			public function doChangePassword(evt:Event):void{
+				if(validate(true)){
+					var evtChange:LoginEvent = new LoginEvent(_currentLogin.login, _currentLogin.senha,_currentLogin.language, LoginEvent.CHANGE_PASSWORD,_currentLogin.confirmarSenha,_currentLogin.lembrete, _currentLogin.novaSenha);
+					dispatchEvent(evtChange);
+				}
+				
+			}
+			
+			/**Do validations for fields*/
+			private function validate(changingPassword:Boolean = false):Boolean{
+				var errors:Array = new Array();
+				
+				if(changingPassword){
+					addValidationMessage(passwordConfirmValidator.validate(edtPasswordConfirm.text), errors);
+				}else{
+					addValidationMessage(userValidator.validate(edtUser.text), errors);
+					addValidationMessage(languageValidator.validate(cbbLanguage.selectedIndex), errors);
+				}
+				
+				addValidationMessage(passwordValidator.validate(edtPassword.text), errors);
+				
+				if(errors.length > 0){
+					Alert.show(errors.join("\n\n"), "Informação");
+					SoundUtils.playSoundMessage();
+					return false
+				}
+				
+				return true;
+			}
+			
+			/**If the result is invalid adds the result for messages*/
+			private function addValidationMessage(result:ValidationResultEvent, messages:Array):void{
+				if(result.type == "invalid"){
+					messages.push("• ".concat(result.message));
+				}
+			}
+				
+			/**Trigger an event to cancel login*/
+			public function cancel(evt:Event):void{				
+				dispatchEvent(new Event(LoginEvent.CANCEL));
+			}
+			
+					
+			/**Change the locale configuration, synchronizes the validations and messages*/
+			protected function localeChange(event:IndexChangeEvent):void
+			{
+				wmResourceManager.selectedLanguage = event.target.selectedItem;
+				sincValidateRequiredMessages();
+				resetValidations();
+			}
+			
+			
+			/**Internationalization for the error message*/
+			private function sincValidateRequiredMessages():void{
+				userValidator.requiredFieldError 			= getValidationRestrictMessage('user');
+				userValidator.tooShortError					= getValidationTooShortError('user', 6);
+				
+				passwordValidator.requiredFieldError 		= getValidationRestrictMessage('password');
+				passwordValidator.tooShortError				= getValidationTooShortError('password',6);
+				
+				passwordConfirmValidator.requiredFieldError = getValidationRestrictMessage('confirmPassword');
+				passwordConfirmValidator.tooShortError 		= getValidationTooShortError('confirmPassword', 6);
+				
+				languageValidator.requiredFieldError 		= getValidationRestrictMessage('language');
+			}
+			
+			/**Builds the translated message for the required field*/
+			private function getValidationRestrictMessage(fieldName:String):String{
+				var fieldName:String =resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.' + fieldName); 
+				var message:String = resourceManager.getString('Concepto','py.com.concepto.requiredField');
+				return message.replace(new RegExp("\\{0\\}")," ".concat(fieldName).concat(" "));
+			}
+			
+			
+			/**Builds the translated message for the field size*/
+			private function getValidationTooShortError(fieldName:String, minLenght:Number):String{
+				var fieldName:String =resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.'+fieldName); 
+				var message:String = resourceManager.getString('Concepto','py.com.concepto.tooShortError');
+				
+				message = message.replace(new RegExp("\\{0\\}")," ".concat(fieldName).concat(" "));
+				message = message.replace(new RegExp("\\{1\\}")," ".concat(minLenght).concat(" "));
+				return message;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>				
+		<!--Validators-->
+		<mx:StringValidator id="userValidator" 
+							required="true"
+							requiredFieldError="{getValidationRestrictMessage('user')}"
+							source="{edtUser}"
+							property="text"/>
+	
+		<mx:StringValidator id="passwordValidator" 
+							minLength="6"
+							required="true"
+							requiredFieldError="{getValidationRestrictMessage('password')}"
+							tooShortError="{getValidationTooShortError('password', 6)}"
+							tooLongError="{getValidationTooShortError('password', 6)}"
+							source="{edtPassword}"
+							property="text"/>
+		
+		<mx:StringValidator id="passwordConfirmValidator" 
+							minLength="6"
+							required="true"
+							requiredFieldError="{getValidationRestrictMessage('confirmPassword')}"		
+							tooShortError="{getValidationTooShortError('confirmPassword', 6)}"
+							source="{edtPasswordConfirm}"
+							property="text"/>
+		
+		<s:NumberValidator id="languageValidator"
+						   minValue="0"
+						   required="true"
+						   requiredFieldError="{getValidationRestrictMessage('language')}"					
+						   source="{cbbLanguage}"
+						   property="selectedIndex"/>
+		
+	</fx:Declarations>
+	
+	<s:BorderContainer dropShadowVisible="false"
+					   cornerRadius="5"
+					   borderWeight="1"
+					   borderColor="0x41917d"
+					   width="350">
+
+		<forms:PanelTitle height="25" 
+						  title="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.titleLogin')}"
+						  title.sttChangePassword="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.titleChangePassword')}"/>
+		
+		<s:Form top="25" width="100%">
+			<s:layout>
+				<s:VerticalLayout paddingLeft="20"
+								  paddingRight="20"
+								  paddingTop="20"
+								  paddingBottom="10"
+								  gap="15">
+				
+				</s:VerticalLayout>
+								 
+			</s:layout>
+			<s:FormItem label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.language')}"
+						width="100%"
+						includeIn="sttLogin">
+				<s:ComboBox id="cbbLanguage"
+								selectedItem="@{_currentLogin.language}"
+								width="100%"
+								dataProvider="{LanguageType.values}"
+								change="localeChange(event)"/>
+			</s:FormItem>
+			
+				<!--Login-->
+				<s:FormItem includeIn="sttLogin" 
+							label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.user')}"
+							width="100%"
+							id="fiUser">		
+					<s:TextInput id="edtUser"
+								 text="@{_currentLogin.login}"
+								 width="100%"/>
+				</s:FormItem>
+			
+				
+				
+				<!--PassWord-->
+				<s:FormItem label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.password')}"
+							label.sttChangePassword="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.actualPassword')}"
+							width="100%">	
+					<s:TextInput id="edtPassword"
+								 text="@{_currentLogin.senha}"
+								 displayAsPassword="true"
+								 width="100%"/>
+				</s:FormItem>	
+			
+			<!--PassWordActual-->
+			<s:FormItem label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.passwordAcual')}"
+						label.sttChangePassword="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.newPassword')}"
+						width="100%"
+						includeIn="sttChangePassword">	
+				<s:TextInput id="edtNewPassword"
+							 text="@{_currentLogin.novaSenha}"
+							 displayAsPassword="true"
+							 width="100%"/>
+			</s:FormItem>
+			
+				<!--PassWord Confirmation-->
+				<s:FormItem label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.confirmPassword')}"
+							includeIn="sttChangePassword"
+							width="100%">	
+					<s:TextInput id="edtPasswordConfirm" 
+								 displayAsPassword="true"
+								 width="100%"
+								 text="@{_currentLogin.confirmarSenha}"/>
+				</s:FormItem>
+			
+				<!--PassWord Reminder-->
+				<s:FormItem label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.passwordReminder')}"
+							includeIn="sttChangePassword"
+							width="100%">	
+					<s:TextInput width="100%"  text="@{_currentLogin.lembrete}"/>
+				</s:FormItem>
+			
+			
+			<s:Label id="errorText"
+					 visible="false"
+					 includeInLayout="false"
+					 color="0xFF0000"/>
+				
+				<s:Group width="100%">
+					<s:layout>
+						<s:HorizontalLayout horizontalAlign="right"/>
+					</s:layout>
+					<s:CheckBox id="cbbSavePassword" 
+								label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.passwordReminder')}"
+								color="0x666666"
+								includeIn="sttLogin"
+								selected="@{_currentLogin.salvarSenha}"/>
+					<s:Spacer width="100%"/>
+					<s:Button label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.doLogin')}"					 
+							  click="doLogin()"
+							  includeIn="sttLogin"/>
+					<s:Button label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.changePassword')}"					 					 
+							  click="doChangePassword(event)"
+							  includeIn="sttChangePassword"/>
+					<s:Button label="{resourceManager.getString('Concepto','py.com.concepto.view.ConceptoLogin.cancel')}"								 
+							  click="cancel(event)"
+							  includeIn="sttChangePassword"/>
+				</s:Group>
+				
+				<s:Spacer height="100%" includeIn="sttLogin"/>
+			
+		</s:Form>
+		
+	</s:BorderContainer>
+
+</s:Group>

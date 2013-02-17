@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600"  
+			   backgroundColor="0xFFFFFF"
+			   initialize="onInitialize(event)" 
+			   creationComplete="onCreate(event)"
+			   xmlns:components="py.com.concepto.components.*"
+			   currentState="loggedOut"  
+			   xmlns:forms="py.com.concepto.components.forms.*" 
+			   xmlns:vos="py.com.concepto.components.vos.*"
+			   xmlns:view="py.com.concepto.sysposto.view.*" xmlns:swizconfig="py.com.concepto.sysposto.swizconfig.*" >
+	<fx:Style source="py/com/concepto/sysposto/css/Concepto.css"/>
+	<fx:Metadata>
+		[ResourceBundle("Concepto")]
+	</fx:Metadata>
+	
+	
+	
+	<fx:Declarations>
+		<!-- SWIZ CONFIG	-->
+		<swizconfig:SwizConfig/>
+		<!-- END OF SWIZ CONFIG	-->
+		
+	</fx:Declarations>
+	
+	<s:states>
+		<s:State name="loggedIn"/>
+		<s:State name="loggedOut"/>
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.containers.ApplicationControlBar;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import py.com.concepto.components.core.resource.WMResourceManager;
+			import py.com.concepto.components.dialogs.Alert;
+			import py.com.concepto.components.events.CloseTabBarEvent;
+			import py.com.concepto.components.events.FindEvent;
+			import py.com.concepto.components.forms.TemplateForm;
+			import py.com.concepto.sysposto.controller.ApplicationController;
+			import py.com.concepto.sysposto.controller.MainController;
+			import py.com.concepto.sysposto.view.FilialSelection;
+			import py.com.concepto.sysposto.view.main.MainTemplateForm;
+			
+			import spark.components.PopUpAnchor;
+			
+			
+			private var _controller:ApplicationController;
+			[Bindable]
+			[Inject(source="mainController")]
+			public var mainController:MainController;
+			
+			public var menuItens:Array;
+			
+			private function onInitialize(evt:Event):void{
+				getInstance();
+				initMenuProvider();
+			}
+			
+			public function applicationLogin():void{
+				viewContainer.selectedChild = applicationScreen;
+				this.currentState = "loggedIn";
+				this.header.applicationLogin();
+				this.header.nomeUsuario = _controller.loggedUser.nome;
+				/* this.header.nomeEmpresa = _controller.loggedUser.strEmpresaNome; */
+				showMainForm(null);				
+			}
+			public function applicationLogout():void{
+				loginScreen.preInitializeToLogin(null);	
+				
+				for each(var templateTab:TemplateForm in viewNavigator.getChildren()){
+					viewNavigator.removeChild(templateTab);
+					templateTab.kill();
+					templateTab = null;
+				}
+				
+				this.currentState = "loggedOut";
+				this.header.applicationLogout();
+				/* mainController.exitSystem = true; */
+				
+			}
+			
+			
+			public function getInstance():ApplicationController{
+				if(this._controller == null){
+					this._controller = ApplicationController.getInstance();
+				}
+				return this._controller;
+			}
+			
+			private function initMenuProvider():void{
+				menuItens = new Array();
+		/* 		menuItens.push(new MenuItem(CompanyTemplateForm, "Empresas"));
+				menuItens.push(new MenuItem(UserTemplateForm, "Usuários"));
+				menuItens.push(new MenuItem(GroupTemplateForm, "Grupos"));				
+				menuItens.push(new MenuItem(GroupEmailTemplateForm, "Grupo de Email"));				
+	 */		}
+			
+			
+			protected function onCreate(event:Event):void
+			{		
+				header.menuData = menuItens;
+			}
+			
+			
+			
+			
+			private function headerLogout(evt:Event):void{
+				if(viewNavigator.getChildren().length > 0){
+					var okLabel:String = WMResourceManager.getInstance().getResourceString("Concepto","yes");
+					var cancelLabel:String = WMResourceManager.getInstance().getResourceString("Concepto","no");
+					Alert.show(WMResourceManager.getAdvancedResourceString(this, "changePasswordConfirmation", "Concepto") ,null, logoutConfirmation, Alert.addBtnLabelToArgs(okLabel, cancelLabel));
+				}else{
+					doLogout();
+				}
+			}
+			
+			private function logoutConfirmation(evt:CloseEvent, args:Object):void{
+				if(evt.detail == Alert.YES){	
+					doLogout()
+				}
+			}
+			
+			private function doLogout():void{
+				
+				_controller.doLogout()
+			}
+			
+			
+			private function headerChangePassword(evt:Event):void{
+				var okLabel:String = WMResourceManager.getInstance().getResourceString("Concepto","yes");
+				var cancelLabel:String = WMResourceManager.getInstance().getResourceString("Concepto","no");
+				Alert.show(WMResourceManager.getAdvancedResourceString(this, "changePasswordConfirmation", "Concepto") ,null, doChangePassWord, Alert.addBtnLabelToArgs(okLabel, cancelLabel));
+			}
+			
+			private function doChangePassWord(evt:CloseEvent, args:Object):void{
+				if(evt.detail == Alert.YES){
+					applicationLogout();
+					_controller.showLoginToChangePassword()
+				}else{
+					applicationLogin();
+				}
+			}
+			
+			private function mainSearch(evt:FindEvent):void{
+				getInstance().simpleOpenForm(MainTemplateForm);		
+			/* 	mainController.findsearch(evt.condition); */
+			}
+			
+			
+			
+			
+			protected function refreshSelectedChild(event:CloseTabBarEvent):void
+			{
+				
+				if((event.target.data as TemplateForm).refreshable){
+					(event.target.data as TemplateForm).refresh();
+				}
+				
+			}
+			
+			protected function showMainForm(event:FlexEvent):void
+			{	
+				if(getInstance().isOpen(MainTemplateForm) == null){
+					getInstance().simpleOpenForm(MainTemplateForm);						
+				}
+				
+			}
+			
+			
+			protected function loginCancel(event:Event):void
+			{
+				if(getInstance().loggedUser.primeiroAcesso){
+					getInstance().doLogout();					
+				}else{
+					applicationLogin();
+				}
+				
+			}
+			
+			public function applicationFilialList():void
+			{
+				var filialSelection:FilialSelection = new FilialSelection();
+				PopUpManager.addPopUp(filialSelection,this,true);
+				PopUpManager.centerPopUp(filialSelection);
+				
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<!--BackGround-->
+	
+	<s:BitmapImage source.loggedIn="@Embed('py/com/concepto/sysposto/assets/background.png')"
+				   source.loggedOut="@Embed('py/com/concepto/sysposto/assets/energyGray.jpg')"
+				   fillMode.loggedOut="scale"
+				   alpha.loggedOut="0.4"
+				   fillMode="repeat"
+				   width="100%"
+				   height="100%"/>
+	
+	
+	<s:VGroup width="100%"
+			  height="100%" left="10"
+			  right="10">
+		
+		
+		<forms:Header id="header" left="15" right="15" top="-2" width="100%"
+					  changePassword="headerChangePassword(event)" find="mainSearch(event)"
+					  logout="headerLogout(event)" openForm="_controller.menuOpenForm(event)"
+					  styleName="headerComponent" 
+					  title="MÓDULO GESTÃO DE POSTOS DE COMBUSTIVEIS"/>
+		
+		<mx:ViewStack width="100%"
+					  height="100%"
+					  id="viewContainer">
+			<s:NavigatorContent width="100%"
+								height="100%"
+								id="viewLogin">
+				<s:layout>
+					<s:HorizontalLayout/>
+				</s:layout>
+				
+				<view:ConceptoLogin doLogin="_controller.doLogin(event)"
+									changePassword="_controller.doChangePassword(event)"
+									cancel="loginCancel(event)"
+									id="loginScreen"/>
+				
+			</s:NavigatorContent>
+			<!--Application-->
+			
+			<s:NavigatorContent width="100%"
+								height="100%"
+								id="applicationScreen">	
+				
+				<s:HGroup width="100%"
+						  paddingLeft="15"
+						  paddingRight="15">
+					<s:Scroller width="100%">
+						<s:HGroup width="100%">
+							<components:CloseTabBar dataProvider="{viewNavigator}"
+													 closeTab="_controller.closeTabHandler(event)"
+													 id="closeTabBar"
+													 refreshTab="refreshSelectedChild(event)"/>
+						</s:HGroup>
+					</s:Scroller>
+				</s:HGroup>
+				
+				<s:Scroller width="100%"
+							height="100%"
+							top="20">
+					<s:Group width="100%"
+							 height="100%">
+						<!--BackGround Rect-->
+						<s:Rect bottom="0"
+								left="0"
+								right="0"
+								top="0"
+								topLeftRadiusX="5"
+								topLeftRadiusY="5"
+								topRightRadiusX="5"
+								topRightRadiusY="5">
+							<s:stroke>
+								<s:SolidColorStroke color="#419485"
+													weight="1"/>
+							</s:stroke>
+							<s:fill>
+								<s:SolidColor color="#ffffff"
+											  alpha="0.9"/>
+							</s:fill>
+						</s:Rect>
+						
+						
+						<mx:ViewStack id="viewNavigator"
+									  width="100%"
+									  height="100%"
+									  top="10"
+									  right="10"
+									  left="10"
+									  bottom="10"
+									  creationComplete="showMainForm(event)">							
+						</mx:ViewStack>
+					</s:Group>
+				</s:Scroller>
+				
+			</s:NavigatorContent>
+			
+		</mx:ViewStack>
+	</s:VGroup>
+	
+	
+	
+	
+</s:Application>

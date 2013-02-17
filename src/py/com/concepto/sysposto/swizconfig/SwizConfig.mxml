@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<swiz:Swiz xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:swiz="http://swiz.swizframework.org" xmlns:swizconfig="py.com.concepto.sysposto.swizconfig.*"  >
+	
+	
+	<swiz:beanProviders>
+		<swizconfig:MainBean/>
+	</swiz:beanProviders>
+	
+	<swiz:config>
+		<swiz:SwizConfig
+			eventPackages="py.com.concepto.sysposto.events.*"
+			viewPackages="py.com.concepto.sysposto.view.*,py.com.concepto.components.*,ConceptoSistemas"/>
+	</swiz:config>
+</swiz:Swiz>
