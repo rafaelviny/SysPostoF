@@ -1,7 +1,6 @@
 package py.com.concepto.sysposto.model.entity
 {
 	import mx.collections.ArrayCollection;
-	
 	import py.com.concepto.components.types.LanguageType;
 
 	[RemoteClass(alias="py.com.concepto.sysposto.model.entity.Filial")]
